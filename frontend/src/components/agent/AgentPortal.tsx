@@ -10,8 +10,15 @@ interface AgentPortalProps {
   onLogout: () => void;
 }
 
+type AgentPage =
+  | 'dashboard'
+  | 'cases'
+  | 'case-update'
+  | 'notifications'
+  | 'profile';
+
 export default function AgentPortal({ onLogout }: AgentPortalProps) {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'cases' | 'case-update' | 'notifications' | 'profile'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<AgentPage>('dashboard');
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
   const handleUpdateCase = (caseId: string) => {
@@ -28,14 +35,24 @@ export default function AgentPortal({ onLogout }: AgentPortalProps) {
     switch (currentPage) {
       case 'dashboard':
         return <AgentDashboard onViewCases={() => setCurrentPage('cases')} />;
+
       case 'cases':
         return <MyCases onUpdateCase={handleUpdateCase} />;
+
       case 'case-update':
-        return <CaseUpdate caseId={selectedCaseId!} onBack={handleBackToCases} />;
+        return (
+          <CaseUpdate
+            caseId={selectedCaseId!}
+            onBack={handleBackToCases}
+          />
+        );
+
       case 'notifications':
-        return <Notifications onViewCase={handleUpdateCase} />;
+        return <Notifications />;
+
       case 'profile':
         return <AgentProfile />;
+
       default:
         return <AgentDashboard onViewCases={() => setCurrentPage('cases')} />;
     }
