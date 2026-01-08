@@ -35,15 +35,16 @@ const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connected successfully');
-    
-    // Uncomment below to sync models (use with caution in production)
-    // await sequelize.sync({ alter: false });
-    // console.log('✅ Database synchronized');
+
+    // ENABLE SYNC ONLY ONE TIME (creates tables automatically)
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database synchronized');
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
     process.exit(1);
   }
 };
+
 
 // ===================== ROUTES =====================
 

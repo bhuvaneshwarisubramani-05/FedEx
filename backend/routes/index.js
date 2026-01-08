@@ -25,7 +25,7 @@ console.log("Loaded Controllers:", {
 
 
 // ===================== AUTH ROUTES =====================
-router.post('/auth/signup', verifyToken, verifyAdmin, authController.signup);
+router.post('/auth/signup', authController.signup);
 router.post('/auth/login', authController.login);
 router.get('/users/profile', verifyToken, authController.getProfile);
 router.get('/users', verifyToken, verifyAdmin, authController.getAllUsers);
