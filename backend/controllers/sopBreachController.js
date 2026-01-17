@@ -6,7 +6,7 @@ exports.getAllBreaches = async (req, res) => {
     const breaches = await SOPBreach.findAll({
       include: [
         { model: RecoveryCase, as: 'case' },
-        { model: CaseAction, as: 'caseAction' },
+        { model: CaseAction, as: 'action' },
         { model: DebtCollectionAgency, as: 'dca' }
       ],
       order: [['breachedAt', 'DESC']]

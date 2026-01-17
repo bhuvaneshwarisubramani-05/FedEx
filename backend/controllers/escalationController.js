@@ -4,12 +4,9 @@ const { Escalation, RecoveryCase, User } = require('../models');
 exports.getAllEscalations = async (req, res) => {
   try {
     const escalations = await Escalation.findAll({
-      include: [
-        { model: RecoveryCase, as: 'case' },
-        { model: User, as: 'notifiedUser' }
-      ],
-      order: [['escalatedAt', 'DESC']]
-    });
+  order: [['escalatedAt', 'DESC']]
+});
+
 
     return res.status(200).json({
       success: true,
@@ -42,8 +39,7 @@ exports.getCaseEscalations = async (req, res) => {
 
     const escalations = await Escalation.findAll({
       where: { caseId },
-      include: [{ model: User, as: 'notifiedUser' }],
-      order: [['escalatedAt', 'DESC']]
+      
     });
 
     return res.status(200).json({
@@ -137,10 +133,7 @@ exports.getEscalationById = async (req, res) => {
     const { id } = req.params;
 
     const escalation = await Escalation.findByPk(id, {
-      include: [
-        { model: RecoveryCase, as: 'case' },
-        { model: User, as: 'notifiedUser' }
-      ]
+      
     });
 
     if (!escalation) {
