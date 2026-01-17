@@ -43,12 +43,18 @@ exports.assignCaseToOneDCA = async (req, res) => {
       });
     }
 
+    // 🔥 FIX: decide USER vs SYSTEM correctly
+    let assignedBy = 'SYSTEM';
+    if (req.user) {
+      assignedBy = 'USER';
+    }
+
     // Create assignment
     const assignment = await CaseAssignment.create({
       caseId,
       dcaId,
       assignedAt: new Date(),
-      assignedBy: req.user ? req.user.role : 'SYSTEM'
+      assignedBy   // ✅ now always valid for ENUM
     });
 
     // Update case status

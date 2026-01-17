@@ -5,18 +5,17 @@ exports.getSOPSteps = async (req, res) => {
   try {
     const { sopId } = req.params;
 
-    // Check if SOP template exists
     const template = await SOPTemplate.findByPk(sopId);
     if (!template) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'SOP template not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'SOP template not found'
       });
     }
 
     const steps = await SOPStep.findAll({
       where: { sopId },
-      order: [['dueInDays', 'ASC']]
+      order: [['stepOrder', 'ASC']]
     });
 
     return res.status(200).json({
@@ -27,10 +26,10 @@ exports.getSOPSteps = async (req, res) => {
     });
   } catch (error) {
     console.error('Get SOP steps error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error fetching SOP steps',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -41,13 +40,13 @@ exports.getSOPStepById = async (req, res) => {
     const { id } = req.params;
 
     const step = await SOPStep.findByPk(id, {
-      include: [{ model: SOPTemplate, as: 'sopTemplate' }]
+      include: [{ model: SOPTemplate, as: 'template' }]
     });
 
     if (!step) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'SOP step not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'SOP step not found'
       });
     }
 
@@ -57,10 +56,10 @@ exports.getSOPStepById = async (req, res) => {
     });
   } catch (error) {
     console.error('Get SOP step error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error fetching SOP step',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -69,31 +68,45 @@ exports.getSOPStepById = async (req, res) => {
 exports.createSOPStep = async (req, res) => {
   try {
     const { sopId } = req.params;
-    const { actionType, dueInDays, mandatory, description } = req.body;
+    const {
+      actionType,
+      dueInDays,
+      mandatory,
+      stepOrder,
+      description,
+      expectedOutcome
+    } = req.body;
 
-    // Validate input
-    if (!actionType || dueInDays === undefined) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Action type and due days required' 
+    // 🔐 Validation
+    if (!actionType || dueInDays === undefined || stepOrder === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'actionType, dueInDays and stepOrder are required'
       });
     }
 
-    // Check if SOP template exists
     const template = await SOPTemplate.findByPk(sopId);
     if (!template) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'SOP template not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'SOP template not found'
       });
     }
 
-    // Validate action type
-    const validActionTypes = ['CALL', 'EMAIL', 'LEGAL_NOTICE', 'PERSONAL_VISIT', 'SMS', 'ESCALATION'];
+    const validActionTypes = [
+      'CALL',
+      'EMAIL',
+      'VISIT',
+      'LEGAL_NOTICE',
+      'FINAL_DEMAND',
+      'SMS',
+      'LETTER'
+    ];
+
     if (!validActionTypes.includes(actionType)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid action type. Must be CALL, EMAIL, LEGAL_NOTICE, PERSONAL_VISIT, SMS, or ESCALATION' 
+      return res.status(400).json({
+        success: false,
+        message: `Invalid action type. Must be one of: ${validActionTypes.join(', ')}`
       });
     }
 
@@ -101,8 +114,10 @@ exports.createSOPStep = async (req, res) => {
       sopId,
       actionType,
       dueInDays,
-      mandatory: mandatory !== undefined ? mandatory : false,
-      description
+      mandatory: mandatory !== undefined ? mandatory : true,
+      stepOrder,              // ✅ FIXED
+      description,
+      expectedOutcome         // ✅ FIXED
     });
 
     return res.status(201).json({
@@ -112,10 +127,10 @@ exports.createSOPStep = async (req, res) => {
     });
   } catch (error) {
     console.error('Create SOP step error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error creating SOP step',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -124,22 +139,38 @@ exports.createSOPStep = async (req, res) => {
 exports.updateSOPStep = async (req, res) => {
   try {
     const { id } = req.params;
-    const { actionType, dueInDays, mandatory, description } = req.body;
+    const {
+      actionType,
+      dueInDays,
+      mandatory,
+      stepOrder,
+      description,
+      expectedOutcome
+    } = req.body;
 
     const step = await SOPStep.findByPk(id);
     if (!step) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'SOP step not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'SOP step not found'
       });
     }
 
+    const validActionTypes = [
+      'CALL',
+      'EMAIL',
+      'VISIT',
+      'LEGAL_NOTICE',
+      'FINAL_DEMAND',
+      'SMS',
+      'LETTER'
+    ];
+
     if (actionType) {
-      const validActionTypes = ['CALL', 'EMAIL', 'LEGAL_NOTICE', 'PERSONAL_VISIT', 'SMS', 'ESCALATION'];
       if (!validActionTypes.includes(actionType)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid action type' 
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action type'
         });
       }
       step.actionType = actionType;
@@ -147,7 +178,9 @@ exports.updateSOPStep = async (req, res) => {
 
     if (dueInDays !== undefined) step.dueInDays = dueInDays;
     if (mandatory !== undefined) step.mandatory = mandatory;
+    if (stepOrder !== undefined) step.stepOrder = stepOrder;   // ✅ FIXED
     if (description) step.description = description;
+    if (expectedOutcome) step.expectedOutcome = expectedOutcome;
 
     await step.save();
 
@@ -158,10 +191,10 @@ exports.updateSOPStep = async (req, res) => {
     });
   } catch (error) {
     console.error('Update SOP step error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error updating SOP step',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -173,9 +206,9 @@ exports.deleteSOPStep = async (req, res) => {
 
     const step = await SOPStep.findByPk(id);
     if (!step) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'SOP step not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'SOP step not found'
       });
     }
 
@@ -187,10 +220,10 @@ exports.deleteSOPStep = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete SOP step error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error deleting SOP step',
-      error: error.message 
+      error: error.message
     });
   }
 };
