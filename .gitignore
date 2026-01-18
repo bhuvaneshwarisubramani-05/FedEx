@@ -33,3 +33,38 @@ dist-ssr/
 # Optional: Ignore frontend and backend specific build folders if needed
 frontend/build/
 backend/build/
+
+
+# -------------------------
+# ML artifacts (IMPORTANT)
+# -------------------------
+recovery_model.pkl
+feature_columns.pkl
+label_encoders.pkl
+*.joblib
+
+# -------------------------
+# Data files (sensitive)
+# -------------------------
+*.xlsx
+*.csv
+
+# -------------------------
+# FastAPI / Uvicorn
+# -------------------------
+*.sqlite3
+
+# -------------------------
+# Python cache & bytecode
+# -------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# -------------------------
+# Virtual environments
+# -------------------------
+venv/
+env/
+.venv/
